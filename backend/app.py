@@ -1,14 +1,24 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
+import os
+from dotenv import load_dotenv  # ✅ Import dotenv to load API key from .env
 
+# ----------------- Setup -----------------
 app = Flask(__name__)
 CORS(app)
 
+# Load environment variables from .env
+load_dotenv()
+
+# Base URLs
 OSRM_URL = 'https://router.project-osrm.org/route/v1/driving'
 OPENCHARGEMAP_URL = 'https://api.openchargemap.io/v3/poi/'
 
+# Get API key securely from .env
+OCM_API_KEY = os.getenv("key")
 
+# ----------------- Routing Helper -----------------
 def get_osrm_route(start, end, alternatives=False):
     s = f"{start[1]},{start[0]}"
     e = f"{end[1]},{end[0]}"
@@ -17,7 +27,7 @@ def get_osrm_route(start, end, alternatives=False):
     r.raise_for_status()
     return r.json()
 
-
+# ----------------- ROUTE: /route -----------------
 @app.route('/route')
 def route():
     start_raw = request.args.get('start')
@@ -60,7 +70,7 @@ def route():
         'blocked_simulated': blocked
     })
 
-
+# ----------------- ROUTE: /stations -----------------
 @app.route('/stations')
 def stations():
     lat = request.args.get('lat')
@@ -68,14 +78,17 @@ def stations():
     if not lat or not lon:
         return jsonify({'error': 'lat,lon required'}), 400
 
+    if not OCM_API_KEY:
+        return jsonify({'error': 'Missing OCM_API_KEY in environment'}), 500
+
     params = {
         'latitude': lat,
         'longitude': lon,
-        'distance': 100,  # larger radius for better coverage
+        'distance': 100,   # Larger radius for better coverage
         'distanceunit': 'KM',
         'maxresults': 25,
         'output': 'json',
-        'key': 'd6087db3-4b7b-4a87-8f95-fdb7331188e3'  # ✅ your real API key
+        'key': OCM_API_KEY,  # ✅ Securely loaded key
     }
 
     headers = {
@@ -107,7 +120,7 @@ def stations():
 
     return jsonify({'stations': simplified})
 
-
+# ----------------- ROUTE: /geocode -----------------
 @app.route('/geocode')
 def geocode():
     place = request.args.get('place')
@@ -130,6 +143,6 @@ def geocode():
     lon = float(results[0]['lon'])
     return jsonify({'lat': lat, 'lon': lon})
 
-
+# ----------------- MAIN -----------------
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
