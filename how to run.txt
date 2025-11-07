@@ -1,0 +1,24 @@
+backend:
+
+D:\ev_route_planner\backend>
+
+python -m venv venv
+
+venv\Scripts\activate
+
+
+
+
+(venv) PS D:\ev_route_planner\backend> 
+
+pip install flask flask-cors requests
+
+python app.py
+
+
+frontend:
+D:\ev_route_planner\frontend>
+
+npm init
+
+npm start

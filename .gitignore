@@ -1,0 +1,16 @@
+# Node dependencies
+node_modules/
+build/
+dist/
+
+# Python venv
+venv/
+__pycache__/
+
+# Environment files
+.env
+
+# OS / IDE junk
+.DS_Store
+Thumbs.db
+.vscode/
